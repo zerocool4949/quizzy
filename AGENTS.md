@@ -1,5 +1,9 @@
 # Repository Guidelines
 
+## Working instructions
+
+Follow the global `~/.codex/AGENTS.md` for general workflow, scope, communication, maintenance, design, and verification rules. This file adds project-specific context only; it does not override the global rules. Commands below are references, not authorization to run builds, services, full tests, deployments, commits, pushes, or publishing.
+
 ## Project Structure & Module Organization
 - `client/` hosts the React + Vite frontend; main UI lives in `client/src/components/`.
 - `client/src/components/game/` contains split Game screen components (GameLoading, GameCountdown, GameFinished, RoundResults, LiveScoreboard, MCQAnswers, TypedAnswers, MovieAnswers, VideogameAnswers).
@@ -42,12 +46,12 @@
 ## Testing Guidelines
 - Backend tests use Vitest (`server` workspace).
 - Name tests to mirror modules or behaviors (example: `answerMatcher.test.js` in `server/`).
-- Add tests for scoring, round flow, and answer matching when changing game logic.
+- Add tests only when explicitly requested; for game logic, focus requested tests on scoring, round flow, and answer matching.
 
 ## Commit & Pull Request Guidelines
 - Recent commits use short, imperative summaries (examples: "Add multilingual support", "Clarify difficulty tooltip").
 - Keep commit subjects under ~60 characters and scoped to one change.
-- PRs should include a concise summary, testing notes (`npm test`, `npm run dev`), and screenshots for UI changes.
+- PRs should include a concise summary, checks actually performed, and relevant limitations. Include screenshots for UI changes when available; do not start services solely to obtain them unless explicitly requested.
 - Link related issues or feature requests when applicable.
 
 ## Configuration & Security Notes
