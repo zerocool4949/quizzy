@@ -1,0 +1,24 @@
+name: GHCR cleanup
+
+on:
+  schedule:
+    - cron: "0 3 * * 0"
+  workflow_dispatch: {}
+
+jobs:
+  cleanup:
+    name: Prune old package versions
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - name: Clean up old images
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          packages: quizzy
+          keep-n-tagged: 1
+          delete-untagged: true
+          delete-ghost-images: true
+          delete-partial-images: true
+          delete-orphaned-images: true
