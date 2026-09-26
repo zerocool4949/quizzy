@@ -4,6 +4,8 @@ import { getQuizTracks } from './quiz.js';
 import { normalize, looselyMatches } from './answerMatcher.js';
 import { logGame } from './gameLogger.js';
 import { sanitizeAnswerText } from './validation.js';
+import { SOUNDTRACK_MODES, isSoundtrackMode, getSoundtrackQuizTracks } from './soundtrackQuiz.js';
+import { getMovieClipSeconds } from './audioCache.js';
 import {
   createRoom,
   joinRoom,
@@ -17,6 +19,32 @@ import {
 // Re-export room management functions
 export { createRoom, joinRoom, leaveRoom, getRoom, updateRoomSettings, resetRoom, switchRole };
 
+// Seconds to answer after the clip ends (client timer uses the same value)
+export function getAnswerTime(answerMode) {
+  return answerMode === 'mcq' ? 5 : 10;
+}
+
+// Typed mode on hard difficulty gets 5 lives; everything else gets 3
+function getStartingLives(room) {
+  return room.answerMode === 'typed' && room.difficulty === 3 ? 5 : 3;
+}
+
+// Speed bonus for typed and soundtrack answers
+function getSpeedBonus(time) {
+  if (time < 5) return 5;
+  if (time < 10) return 3;
+  if (time < 15) return 1;
+  return 0;
+}
+
+// Speed bonus for MCQ answers
+function getMcqSpeedBonus(time) {
+  if (time < 3) return 3;
+  if (time < 6) return 2;
+  if (time < 10) return 1;
+  return 0;
+}
+
 export async function startGame(code, onProgress = null) {
   const room = getRoom(code);
   if (!room || room.state !== 'lobby') return { error: 'Cannot start game' };
@@ -24,19 +52,11 @@ export async function startGame(code, onProgress = null) {
   if (activePlayers.length < 1) return { error: 'Need at least 1 player' };
 
   try {
-    // Movie mode uses separate quiz generator
-    if (room.answerMode === 'movie') {
-      const { getMovieQuizTracks } = await import('./movieQuiz.js');
-      const { getMovieClipSeconds } = await import('./audioCache.js');
+    // Soundtrack modes (movie, videogame) use their own quiz generator
+    if (isSoundtrackMode(room.answerMode)) {
       room.clipDuration = getMovieClipSeconds();
-      const excludeMovieIds = room.usedMovieIds ? Array.from(room.usedMovieIds) : [];
-      room.rounds = await getMovieQuizTracks(room.totalRounds, onProgress, excludeMovieIds);
-    } else if (room.answerMode === 'videogame') {
-      const { getVideogameQuizTracks } = await import('./videogameQuiz.js');
-      const { getMovieClipSeconds } = await import('./audioCache.js');
-      room.clipDuration = getMovieClipSeconds();
-      const excludeGameIds = room.usedVideogameIds ? Array.from(room.usedVideogameIds) : [];
-      room.rounds = await getVideogameQuizTracks(room.totalRounds, onProgress, excludeGameIds);
+      const excludeIds = Array.from(room.usedSoundtrackIds[room.answerMode]);
+      room.rounds = await getSoundtrackQuizTracks(room.answerMode, room.totalRounds, onProgress, excludeIds);
     } else {
       room.clipDuration = 15;
       const excludeTrackIds = room.usedTrackIds ? Array.from(room.usedTrackIds) : [];
@@ -58,17 +78,12 @@ export async function startGame(code, onProgress = null) {
       p.streak = 0;
     });
 
-    // Track used songs/movies to avoid repeats across games
+    // Track used songs/soundtracks to avoid repeats across games
+    const usedIds = isSoundtrackMode(room.answerMode)
+      ? room.usedSoundtrackIds[room.answerMode]
+      : room.usedTrackIds;
     room.rounds.forEach(round => {
-      if (round?.correctId) {
-        if (room.answerMode === 'movie') {
-          room.usedMovieIds.add(round.correctId);
-        } else if (room.answerMode === 'videogame') {
-          room.usedVideogameIds.add(round.correctId);
-        } else {
-          room.usedTrackIds.add(round.correctId);
-        }
-      }
+      if (round?.correctId) usedIds.add(round.correctId);
     });
 
     // Log game for debugging/review
@@ -91,17 +106,14 @@ export function getCurrentRound(code) {
   room.roundEnded = false;
   room.answers.clear();
 
-  const answerTime = (room.answerMode === 'typed' || room.answerMode === 'movie' || room.answerMode === 'videogame') ? 10 : 5;
-  const startingLives = room.difficulty === 3 ? 5 : 3;
-
   return {
     roundNumber: round.roundNumber,
     totalRounds: room.totalRounds,
     previewUrl: round.previewUrl,
     answerMode: room.answerMode,
     clipDuration: room.clipDuration,
-    answerTime,
-    startingLives,
+    answerTime: getAnswerTime(room.answerMode),
+    startingLives: getStartingLives(room),
     options: room.answerMode === 'mcq' ? round.options : undefined
   };
 }
@@ -129,11 +141,8 @@ export function submitAnswer(code, playerId, payload) {
     let speedBonus = 0;
 
     if (isCorrect) {
-      points = 10;
-      if (timeTaken < 3) speedBonus = 3;
-      else if (timeTaken < 6) speedBonus = 2;
-      else if (timeTaken < 10) speedBonus = 1;
-      points += speedBonus;
+      speedBonus = getMcqSpeedBonus(timeTaken);
+      points = 10 + speedBonus;
       player.streak++;
     } else {
       player.streak = 0;
@@ -161,8 +170,10 @@ export function submitAnswer(code, playerId, payload) {
     };
   }
 
-  // MOVIE TYPED MODE
-  if (room.answerMode === 'movie') {
+  // SOUNDTRACK MODES (movie, videogame)
+  if (isSoundtrackMode(room.answerMode)) {
+    const mode = room.answerMode;
+    const { answerKey, correctFlag } = SOUNDTRACK_MODES[mode];
     const text = sanitizeAnswerText(payload?.text);
     if (!text) return null;
 
@@ -170,10 +181,10 @@ export function submitAnswer(code, playerId, payload) {
 
     if (!existing) {
       existing = {
-        mode: 'movie',
+        mode,
         finished: false,
-        lives: 3,
-        movieCorrect: false,
+        lives: getStartingLives(room),
+        [correctFlag]: false,
         points: 0
       };
       room.answers.set(playerId, existing);
@@ -181,30 +192,18 @@ export function submitAnswer(code, playerId, payload) {
 
     if (existing.finished) return null;
 
-    const correctMovie = round.correctMovie;
-
-    function getSpeedBonus(time) {
-      if (time < 5) return 5;
-      if (time < 10) return 3;
-      if (time < 15) return 1;
-      return 0;
-    }
-
-    const matchesMovie = looselyMatches(text, correctMovie);
-
     // Wrong guess - lose a life
-    if (!matchesMovie) {
+    if (!looselyMatches(text, round[answerKey])) {
       existing.lives--;
       if (existing.lives <= 0) {
         player.streak = 0;
         existing.finished = true;
       }
-      room.answers.set(playerId, existing);
 
       return {
-        mode: 'movie',
+        mode,
         isCorrect: false,
-        movieCorrect: false,
+        [correctFlag]: false,
         points: 0,
         totalScore: player.score,
         streak: player.streak,
@@ -217,88 +216,14 @@ export function submitAnswer(code, playerId, payload) {
     const pointsAwarded = 15 + speedBonus;
     player.score += pointsAwarded;
     player.streak++;
-    existing.movieCorrect = true;
+    existing[correctFlag] = true;
     existing.points = pointsAwarded;
     existing.finished = true;
-    room.answers.set(playerId, existing);
 
     return {
-      mode: 'movie',
+      mode,
       isCorrect: true,
-      movieCorrect: true,
-      points: pointsAwarded,
-      speedBonus,
-      totalScore: player.score,
-      streak: player.streak,
-      livesLeft: existing.lives
-    };
-  }
-
-  // VIDEOGAME TYPED MODE
-  if (room.answerMode === 'videogame') {
-    const text = sanitizeAnswerText(payload?.text);
-    if (!text) return null;
-
-    let existing = room.answers.get(playerId);
-
-    if (!existing) {
-      existing = {
-        mode: 'videogame',
-        finished: false,
-        lives: 3,
-        videogameCorrect: false,
-        points: 0
-      };
-      room.answers.set(playerId, existing);
-    }
-
-    if (existing.finished) return null;
-
-    const correctGame = round.correctGame;
-
-    function getSpeedBonus(time) {
-      if (time < 5) return 5;
-      if (time < 10) return 3;
-      if (time < 15) return 1;
-      return 0;
-    }
-
-    const matchesGame = looselyMatches(text, correctGame);
-
-    // Wrong guess - lose a life
-    if (!matchesGame) {
-      existing.lives--;
-      if (existing.lives <= 0) {
-        player.streak = 0;
-        existing.finished = true;
-      }
-      room.answers.set(playerId, existing);
-
-      return {
-        mode: 'videogame',
-        isCorrect: false,
-        videogameCorrect: false,
-        points: 0,
-        totalScore: player.score,
-        streak: player.streak,
-        livesLeft: existing.lives
-      };
-    }
-
-    // Correct!
-    const speedBonus = getSpeedBonus(timeTaken);
-    const pointsAwarded = 15 + speedBonus;
-    player.score += pointsAwarded;
-    player.streak++;
-    existing.videogameCorrect = true;
-    existing.points = pointsAwarded;
-    existing.finished = true;
-    room.answers.set(playerId, existing);
-
-    return {
-      mode: 'videogame',
-      isCorrect: true,
-      videogameCorrect: true,
+      [correctFlag]: true,
       points: pointsAwarded,
       speedBonus,
       totalScore: player.score,
@@ -314,12 +239,10 @@ export function submitAnswer(code, playerId, payload) {
   let existing = room.answers.get(playerId);
 
   if (!existing) {
-    // Hard difficulty (3) gets 5 lives, others get 3
-    const startingLives = room.difficulty === 3 ? 5 : 3;
     existing = {
       mode: 'typed',
       finished: false,
-      lives: startingLives,
+      lives: getStartingLives(room),
       artistCorrect: false,
       titleCorrect: false,
       points: 0,
@@ -332,13 +255,6 @@ export function submitAnswer(code, playerId, payload) {
 
   const correctArtists = round.correctArtists || [round.correctArtist];
   const correctTitle = round.correctName;
-
-  function getSpeedBonus(time) {
-    if (time < 5) return 5;
-    if (time < 10) return 3;
-    if (time < 15) return 1;
-    return 0;
-  }
 
   let matchesArtist = !existing.artistCorrect && correctArtists.some(artist => looselyMatches(text, artist));
   let matchesTitle = !existing.titleCorrect && looselyMatches(text, correctTitle);
@@ -476,10 +392,8 @@ export function getRoundResults(code) {
         let isCorrect = false;
         if (answer?.mode === 'mcq') {
           isCorrect = answer?.isCorrect || false;
-        } else if (answer?.mode === 'movie') {
-          isCorrect = answer?.movieCorrect || false;
-        } else if (answer?.mode === 'videogame') {
-          isCorrect = answer?.videogameCorrect || false;
+        } else if (isSoundtrackMode(answer?.mode)) {
+          isCorrect = answer[SOUNDTRACK_MODES[answer.mode].correctFlag] || false;
         } else if (answer?.mode === 'typed') {
           isCorrect = !!(answer?.artistCorrect && answer?.titleCorrect);
         }
@@ -497,13 +411,9 @@ export function getRoundResults(code) {
   };
 
   // Add mode-specific fields
-  if (room.answerMode === 'movie') {
-    result.correctMovie = round.correctMovie;
-    result.correctTrack = round.correctTrack;
-    result.correctComposer = round.correctComposer;
-    result.correctYear = round.correctYear;
-  } else if (room.answerMode === 'videogame') {
-    result.correctGame = round.correctGame;
+  if (isSoundtrackMode(room.answerMode)) {
+    const { answerKey } = SOUNDTRACK_MODES[room.answerMode];
+    result[answerKey] = round[answerKey];
     result.correctTrack = round.correctTrack;
     result.correctComposer = round.correctComposer;
     result.correctYear = round.correctYear;
@@ -552,16 +462,10 @@ export function getGameResults(code) {
       score: p.score
     })),
     rounds: room.rounds.map(r => {
-      if (room.answerMode === 'movie') {
+      if (isSoundtrackMode(room.answerMode)) {
+        const { answerKey, summaryKey } = SOUNDTRACK_MODES[room.answerMode];
         return {
-          movie: r.correctMovie,
-          track: r.correctTrack,
-          composer: r.correctComposer
-        };
-      }
-      if (room.answerMode === 'videogame') {
-        return {
-          game: r.correctGame,
+          [summaryKey]: r[answerKey],
           track: r.correctTrack,
           composer: r.correctComposer
         };

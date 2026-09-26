@@ -148,6 +148,8 @@
     "playlistDeleteFailed": "Failed to delete playlist",
     "playlistDeleteDenied": "Can only delete imported playlists",
     "spotifyApi": "Spotify API error: {status}",
-    "importFailed": "Failed to import playlist"
+    "importFailed": "Failed to import playlist",
+    "playlistHostOnly": "Only the host can manage playlists",
+    "tooManyRequests": "Too many requests, try again later"
   }
 }

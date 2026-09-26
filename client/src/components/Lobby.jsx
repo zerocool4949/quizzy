@@ -7,7 +7,7 @@ import { useI18n } from '../i18n';
 const API_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 export default function Lobby() {
-  const { roomCode, players, isHost, isSpectator, switchRole, startGame, leaveGame, gameState, updateSettings, roomSettings } = useGame();
+  const { roomCode, players, isHost, isSpectator, switchRole, startGame, leaveGame, gameState, updateSettings, roomSettings, importPlaylist, deletePlaylist } = useGame();
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState(roomSettings?.categoryIds || []);
   const [answerMode, setAnswerMode] = useState(roomSettings?.answerMode || 'typed');
@@ -63,15 +63,9 @@ export default function Lobby() {
     setImportError('');
 
     try {
-      const res = await fetch(`${API_URL}/api/playlists/import`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: importUrl })
-      });
+      const data = await importPlaylist(importUrl);
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      if (data.error) {
         setImportError(data.error ? tError(data.error) : t('errors.importFailed'));
         return;
       }
@@ -95,11 +89,9 @@ export default function Lobby() {
     if (!confirm(t('lobby.deleteConfirm'))) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/playlists/${categoryId}`, {
-        method: 'DELETE'
-      });
+      const result = await deletePlaylist(categoryId);
 
-      if (res.ok) {
+      if (!result.error) {
         // Remove from selection if selected
         setSelectedCategories(prev => prev.filter(id => id !== categoryId));
         // Refresh categories

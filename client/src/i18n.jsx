@@ -41,7 +41,9 @@ const serverErrorKeys = {
   'Failed to fetch playlist': 'errors.playlistFetchFailed',
   'Failed to save playlist': 'errors.playlistSaveFailed',
   'Failed to delete playlist': 'errors.playlistDeleteFailed',
-  'Can only delete imported playlists': 'errors.playlistDeleteDenied'
+  'Can only delete imported playlists': 'errors.playlistDeleteDenied',
+  'Only the host can manage playlists': 'errors.playlistHostOnly',
+  'Too many requests, try again later': 'errors.tooManyRequests'
 };
 
 function normalizeLanguage(code) {

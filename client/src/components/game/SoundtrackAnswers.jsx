@@ -1,28 +1,46 @@
 import { useI18n } from '../../i18n'
 
-export default function MovieAnswers({
+// Per-mode labels and accent colors (full class names so Tailwind picks them up)
+const MODE_UI = {
+  movie: {
+    labelKey: 'game.movieLabel',
+    promptKey: 'game.typeMovieName',
+    inputFocus: 'focus:border-amber-400',
+    button: 'bg-amber-600 hover:bg-amber-500'
+  },
+  videogame: {
+    labelKey: 'game.videogameLabel',
+    promptKey: 'game.typeVideogameName',
+    inputFocus: 'focus:border-purple-400',
+    button: 'bg-purple-600 hover:bg-purple-500'
+  }
+}
+
+export default function SoundtrackAnswers({
+  mode,
   typedInput,
   setTypedInput,
-  movieCorrect,
+  correct,
   lives,
   totalPoints,
   submitTypedAnswer
 }) {
   const { t } = useI18n()
+  const ui = MODE_UI[mode]
 
   return (
     <div className="space-y-4">
-      {/* Status indicator for movie */}
+      {/* Status indicator */}
       <div className="flex justify-center mb-2">
         <div className={`px-4 py-2 rounded-full text-sm ${
-          movieCorrect ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-800 text-slate-400'
+          correct ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-800 text-slate-400'
         }`}>
-          {t('game.movieLabel')} {movieCorrect ? t('game.status.ok') : t('game.status.pending')}
+          {t(ui.labelKey)} {correct ? t('game.status.ok') : t('game.status.pending')}
         </div>
       </div>
 
       {/* Lives display */}
-      {!movieCorrect && lives > 0 && (
+      {!correct && lives > 0 && (
         <div className="flex justify-center gap-2 mb-2">
           {Array.from({ length: Math.max(lives, 0) }).map((_, i) => (
             <svg
@@ -48,11 +66,11 @@ export default function MovieAnswers({
         </div>
       )}
 
-      {/* Input for movie name */}
-      {!movieCorrect && lives > 0 && (
+      {/* Input for the answer */}
+      {!correct && lives > 0 && (
         <div>
           <label className="block text-sm text-slate-400 mb-2">
-            {t('game.typeMovieName')}
+            {t(ui.promptKey)}
           </label>
           <form
             onSubmit={(e) => {
@@ -67,13 +85,13 @@ export default function MovieAnswers({
               value={typedInput}
               onChange={(e) => setTypedInput(e.target.value)}
               placeholder={t('game.typeYourAnswer')}
-              className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-hidden focus:border-amber-400"
+              className={`flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-hidden ${ui.inputFocus}`}
               autoFocus
             />
             <button
               type="submit"
               disabled={!typedInput.trim()}
-              className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors disabled:opacity-50"
+              className={`${ui.button} text-white font-semibold px-6 py-3 rounded-xl transition-colors disabled:opacity-50`}
             >
               {t('buttons.submit')}
             </button>
@@ -82,7 +100,7 @@ export default function MovieAnswers({
       )}
 
       {/* Correct */}
-      {movieCorrect && (
+      {correct && (
         <div className="text-center">
           <div className="p-4 rounded-xl bg-emerald-600/20">
             <p className="text-lg font-bold">{t('game.correct')}</p>
@@ -92,7 +110,7 @@ export default function MovieAnswers({
       )}
 
       {/* Out of lives */}
-      {lives === 0 && !movieCorrect && (
+      {lives === 0 && !correct && (
         <div className="text-center">
           <div className="p-4 rounded-xl bg-rose-600/20">
             <p className="text-lg font-bold">{t('game.outOfLives')}</p>

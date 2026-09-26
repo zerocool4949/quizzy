@@ -253,6 +253,18 @@ export function GameProvider({ children }) {
     socketRef.current?.emit('update-settings', settings);
   }, []);
 
+  // Emit with acknowledgement; resolves to the server's response
+  const emitWithAck = useCallback((event, payload) => {
+    const socket = socketRef.current;
+    if (!socket?.connected) return Promise.resolve({ error: 'Not connected' });
+    return socket.timeout(60000).emitWithAck(event, payload)
+      .catch(() => ({ error: 'Request timed out' }));
+  }, []);
+
+  const importPlaylist = useCallback((url) => emitWithAck('import-playlist', { url }), [emitWithAck]);
+
+  const deletePlaylist = useCallback((categoryId) => emitWithAck('delete-playlist', { categoryId }), [emitWithAck]);
+
   const startGame = useCallback(() => {
     socketRef.current?.emit('start-game');
   }, []);
@@ -288,6 +300,8 @@ export function GameProvider({ children }) {
         joinRoom,
         switchRole,
         updateSettings,
+        importPlaylist,
+        deletePlaylist,
         startGame,
         submitAnswer,
         submitTypedAnswer,

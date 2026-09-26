@@ -58,8 +58,7 @@ export function createRoom(hostId, hostName) {
     roundStartTime: null,
     answers: new Map(),
     usedTrackIds: new Set(),
-    usedMovieIds: new Set(),
-    usedVideogameIds: new Set(),
+    usedSoundtrackIds: { movie: new Set(), videogame: new Set() },
     lastActivity: Date.now()
   };
 

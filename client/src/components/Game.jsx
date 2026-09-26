@@ -10,8 +10,7 @@ import {
   LiveScoreboard,
   MCQAnswers,
   TypedAnswers,
-  MovieAnswers,
-  VideogameAnswers
+  SoundtrackAnswers
 } from './game/index.js'
 
 export default function Game() {
@@ -332,22 +331,12 @@ export default function Game() {
               />
             )}
 
-            {!isSpectator && currentRound?.answerMode === 'movie' && (
-              <MovieAnswers
+            {!isSpectator && (currentRound?.answerMode === 'movie' || currentRound?.answerMode === 'videogame') && (
+              <SoundtrackAnswers
+                mode={currentRound.answerMode}
                 typedInput={typedInput}
                 setTypedInput={setTypedInput}
-                movieCorrect={movieCorrect}
-                lives={lives}
-                totalPoints={totalPoints}
-                submitTypedAnswer={submitTypedAnswer}
-              />
-            )}
-
-            {!isSpectator && currentRound?.answerMode === 'videogame' && (
-              <VideogameAnswers
-                typedInput={typedInput}
-                setTypedInput={setTypedInput}
-                videogameCorrect={videogameCorrect}
+                correct={currentRound.answerMode === 'movie' ? movieCorrect : videogameCorrect}
                 lives={lives}
                 totalPoints={totalPoints}
                 submitTypedAnswer={submitTypedAnswer}

@@ -11,8 +11,6 @@ const CLIP_START = 30;
 const CLIP_CONCURRENCY = 2;
 const CLIP_START_PERCENT = 0.3;
 const YT_DLP_ARGS = [
-  '--extractor-args',
-  'youtube:player_client=web',
   '--js-runtimes', 'node',
   '--remote-components', 'ejs:github'
 ];

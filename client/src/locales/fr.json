@@ -148,6 +148,8 @@
     "playlistDeleteFailed": "Échec de suppression de la playlist",
     "playlistDeleteDenied": "Suppression réservée aux playlists importées",
     "spotifyApi": "Erreur API Spotify : {status}",
-    "importFailed": "Échec de l'import de la playlist"
+    "importFailed": "Échec de l'import de la playlist",
+    "playlistHostOnly": "Seul l'hôte peut gérer les playlists",
+    "tooManyRequests": "Trop de requêtes, réessayez plus tard"
   }
 }

@@ -17,21 +17,24 @@ vi.mock('../quiz.js', () => ({
   getQuizTracks: vi.fn()
 }));
 
-vi.mock('../movieQuiz.js', () => ({
-  getMovieQuizTracks: vi.fn()
+vi.mock('../soundtrackQuiz.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  getSoundtrackQuizTracks: vi.fn()
 }));
 
 vi.mock('../audioCache.js', () => ({
-  getMovieClipSeconds: vi.fn(() => 20)
+  getMovieClipSeconds: vi.fn(() => 20),
+  ensureMovieClip: vi.fn(),
+  getClipUrl: vi.fn()
 }));
 
 import { getQuizTracks } from '../quiz.js';
-import { getMovieQuizTracks } from '../movieQuiz.js';
+import { getSoundtrackQuizTracks } from '../soundtrackQuiz.js';
 
 describe('gameManager', () => {
   beforeEach(() => {
     getQuizTracks.mockReset();
-    getMovieQuizTracks.mockReset();
+    getSoundtrackQuizTracks.mockReset();
   });
 
   it('hands off host when the host leaves', () => {
@@ -239,7 +242,7 @@ describe('gameManager', () => {
     const room = createRoom('host-1', 'Host');
     updateRoomSettings(room.code, { answerMode: 'movie' });
 
-    getMovieQuizTracks.mockResolvedValue([
+    getSoundtrackQuizTracks.mockResolvedValue([
       {
         roundNumber: 1,
         previewUrl: 'https://example.test/audio/movie.mp3',
@@ -281,7 +284,7 @@ describe('gameManager', () => {
     const room = createRoom('host-1', 'Host');
     updateRoomSettings(room.code, { answerMode: 'movie' });
 
-    getMovieQuizTracks.mockResolvedValue([
+    getSoundtrackQuizTracks.mockResolvedValue([
       {
         roundNumber: 1,
         previewUrl: 'https://example.test/audio/movie.mp3',
