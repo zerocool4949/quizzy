@@ -2,8 +2,6 @@
 
 ## Working instructions
 
-Follow the global `~/.codex/AGENTS.md` for general workflow, scope, communication, maintenance, design, and verification rules. This file adds project-specific context only; it does not override the global rules. Commands below are references, not authorization to run builds, services, full tests, deployments, commits, pushes, or publishing.
-
 ## Project Structure & Module Organization
 - `client/` hosts the React + Vite frontend; main UI lives in `client/src/components/`.
 - `client/src/components/game/` contains split Game screen components (GameLoading, GameCountdown, GameFinished, RoundResults, LiveScoreboard, MCQAnswers, TypedAnswers, MovieAnswers, VideogameAnswers).
@@ -32,7 +30,7 @@ Follow the global `~/.codex/AGENTS.md` for general workflow, scope, communicatio
 - Shared config and deployment files are at repo root: `compose.yml`, `Dockerfile`, `.env.example`; CI workflows are in `.github/workflows/`.
 
 ## Build, Test, and Development Commands
-- Use Node.js 22.13+ and pnpm 11.24.0, pinned in `package.json`. `pnpm-workspace.yaml` declares client/server and allows esbuild installation scripts; commit `pnpm-lock.yaml`. Docker uses Node 22 and frozen pnpm installs, with only server production dependencies in the runtime stage.
+- Use Node.js 22.13+ and pnpm 11.24.0, pinned in `package.json`. `pnpm-workspace.yaml` declares client/server; commit `pnpm-lock.yaml`. Docker uses Node 22 and frozen pnpm installs, with only server production dependencies in the runtime stage.
 - `pnpm install` installs root workspaces (`client`, `server`).
 - `pnpm run dev` runs both apps concurrently (Vite on `:5173`, API on `:3001` by default).
 - `pnpm run build` builds the client for production (`client/dist`).
@@ -45,6 +43,7 @@ Follow the global `~/.codex/AGENTS.md` for general workflow, scope, communicatio
 - Prefer single quotes in JS/JSX to match current files.
 - Keep filenames descriptive and aligned with existing patterns (e.g., `Game.jsx`, `roomManager.js`).
 - No repo-wide formatter is configured; keep changes consistent with nearby code.
+- Client stack: React 19, React Router 7, Vite 8, Tailwind CSS 4 via `@tailwindcss/vite` (theme and custom animations in `@theme` in `client/src/index.css`; no Tailwind/PostCSS config files). Server: Express 5 (wildcard routes use `/{*splat}`), dotenv loaded with `quiet: true`, Vitest 5.
 
 ## Testing Guidelines
 - Backend tests use Vitest (`server` workspace).

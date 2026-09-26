@@ -44,7 +44,7 @@ export default function Home() {
       <div className="glow-orb w-72 h-72 bg-blue-400/20 left-1/3 -bottom-10" />
 
       <div className="text-center mb-12 animate-fade-up">
-        <h1 className="text-6xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-teal-300 via-cyan-300 to-sky-300 text-transparent bg-clip-text drop-shadow">
+        <h1 className="text-6xl md:text-7xl font-bold mb-4 bg-linear-to-r from-teal-300 via-cyan-300 to-sky-300 text-transparent bg-clip-text drop-shadow-sm">
           {t('app.title')}
         </h1>
         <p className="text-slate-300 text-lg">{t('app.tagline')}</p>
@@ -116,7 +116,7 @@ export default function Home() {
               type="checkbox"
               checked={joinAsSpectator}
               onChange={(e) => setJoinAsSpectator(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900"
+              className="w-4 h-4 rounded-sm border-slate-600 bg-slate-800 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900"
             />
             {t('home.joinAsSpectator')}
           </label>

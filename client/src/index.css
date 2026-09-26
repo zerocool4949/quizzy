@@ -1,8 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&family=Sora:wght@400;600;700&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --animate-pulse-fast: pulse 0.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-bounce-in: bounceIn 0.5s ease-out;
+
+  @keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+}
+
+/* Keep Tailwind v3 defaults: gray-200 borders and pointer cursor on buttons */
+@layer base {
+  *, ::after, ::before, ::backdrop, ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  button:not(:disabled), [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
 
 :root {
   --bg-1: #060814;
@@ -54,7 +75,7 @@ h1, h2, h3 {
   }
 
   .input {
-    @apply w-full rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none;
+    @apply w-full rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-hidden;
     background: rgba(15, 23, 42, 0.65);
     border: 1px solid rgba(148, 163, 184, 0.35);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);

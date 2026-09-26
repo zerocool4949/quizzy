@@ -35,7 +35,7 @@ import { loadMovies, clearMoviesCache } from './movieQuiz.js';
 import { loadVideogames, clearVideogamesCache } from './videogameQuiz.js';
 import { writeFileSync, unlinkSync } from 'fs';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 // Warm cache on startup (non-blocking)
 warmCache().catch(err => console.error('[Cache Warmer] Error:', err.message));
@@ -70,7 +70,7 @@ app.get('/api/categories', (_req, res) => {
 
 // Import a Spotify playlist as a new category
 app.post('/api/playlists/import', async (req, res) => {
-  const { url } = req.body;
+  const { url } = req.body || {};
 
   if (!url) {
     return res.status(400).json({ error: 'Playlist URL is required' });
@@ -188,7 +188,7 @@ app.put('/api/admin/videogames', requireAdmin, (req, res) => {
 
 // Admin: re-download a clip (delete cached + re-warm)
 app.post('/api/admin/redownload', requireAdmin, async (req, res) => {
-  const { type, name } = req.body;
+  const { type, name } = req.body || {};
   if (!type || !name) return res.status(400).json({ error: 'Missing type or name' });
   const source = type === 'movies' ? loadMovies() : loadVideogames();
   const entry = source[name];
@@ -212,7 +212,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(clientPath));
 
   // SPA fallback - serve index.html for all non-API routes
-  app.get('*', (req, res) => {
+  app.get('/{*splat}', (req, res) => {
     res.sendFile(path.join(clientPath, 'index.html'));
   });
 }

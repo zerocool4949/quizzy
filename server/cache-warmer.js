@@ -11,7 +11,7 @@
 //   node cache-warmer.js --refresh          # Force refresh all artists
 
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ quiet: true });
 
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';

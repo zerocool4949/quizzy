@@ -39,7 +39,7 @@ function getClipUrl(movieName, trackName) {
   return `${API_URL}/audio/${slugify(movieName)}__${slugify(trackName)}.mp3`
 }
 
-const inputClass = 'w-full px-2 py-1 text-sm bg-slate-900 border border-slate-600 rounded focus:outline-none focus:border-teal-500'
+const inputClass = 'w-full px-2 py-1 text-sm bg-slate-900 border border-slate-600 rounded-sm focus:outline-hidden focus:border-teal-500'
 
 export default function Admin() {
   const [tab, setTab] = useState('movies')
@@ -402,7 +402,7 @@ export default function Admin() {
                         <td className="px-3 py-2.5 text-slate-500">{entry.year}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">
                           <button onClick={() => togglePlay(key, track.name)}
-                            className={`text-xs mr-3 px-1.5 py-0.5 rounded border ${playing === key ? 'border-green-400 text-green-300 bg-green-900/30' : 'border-green-700 text-green-500 hover:text-green-400 hover:border-green-500'}`}>
+                            className={`text-xs mr-3 px-1.5 py-0.5 rounded-sm border ${playing === key ? 'border-green-400 text-green-300 bg-green-900/30' : 'border-green-700 text-green-500 hover:text-green-400 hover:border-green-500'}`}>
                             {playing === key ? 'Stop' : 'Play'}
                           </button>
                           <button onClick={() => redownload(key)} disabled={redownloading === key}

@@ -356,7 +356,7 @@ export default function Lobby() {
                 </label>
                 <button
                   onClick={() => setShowImport(!showImport)}
-                  className="text-xs px-2 py-0.5 rounded bg-emerald-600/30 text-emerald-200 hover:bg-emerald-600/50 transition-colors"
+                  className="text-xs px-2 py-0.5 rounded-sm bg-emerald-600/30 text-emerald-200 hover:bg-emerald-600/50 transition-colors"
                 >
                   {t('lobby.import')}
                 </button>
@@ -371,12 +371,12 @@ export default function Lobby() {
                       value={importUrl}
                       onChange={(e) => setImportUrl(e.target.value)}
                       placeholder={t('lobby.importPlaceholder')}
-                      className="flex-1 px-2 py-1.5 text-sm bg-slate-800 border border-slate-700 rounded text-white placeholder-slate-500 focus:outline-none focus:border-teal-500"
+                      className="flex-1 px-2 py-1.5 text-sm bg-slate-800 border border-slate-700 rounded-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-teal-500"
                     />
                     <button
                       onClick={handleImportPlaylist}
                       disabled={importLoading || !importUrl.trim()}
-                      className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-sm hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {importLoading ? '...' : t('buttons.add')}
                     </button>

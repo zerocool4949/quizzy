@@ -2,7 +2,7 @@
 // Requires SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env
 
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const FETCH_TIMEOUT_MS = 30000; // 30 second timeout
 

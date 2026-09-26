@@ -12,7 +12,7 @@ import {
   TypedAnswers,
   MovieAnswers,
   VideogameAnswers
-} from './game'
+} from './game/index.js'
 
 export default function Game() {
   const {

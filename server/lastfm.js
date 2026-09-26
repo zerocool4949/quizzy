@@ -2,7 +2,7 @@
 // Requires LASTFM_API_KEY in .env (free at https://www.last.fm/api/account/create)
 
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const LASTFM_API_KEY = process.env.LASTFM_API_KEY;
 const BASE_URL = 'https://ws.audioscrobbler.com/2.0/';

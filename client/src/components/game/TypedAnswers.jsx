@@ -77,7 +77,7 @@ export default function TypedAnswers({
               value={typedInput}
               onChange={(e) => setTypedInput(e.target.value)}
               placeholder={t('game.typeYourAnswer')}
-              className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-teal-400"
+              className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-hidden focus:border-teal-400"
               autoFocus
             />
             <button
