@@ -63,7 +63,7 @@ export default function Admin() {
       const res = await adminFetch(`${API_URL}/api/admin/${tab}`)
       if (!res.ok) {
         if (res.status === 401) {
-          setError('Unauthorized - check your admin key')
+          setError('Unauthorized - your IP is not allowed and no valid ?key= was given')
         } else {
           setError('Failed to load data')
         }
@@ -226,17 +226,6 @@ export default function Admin() {
 
   const entries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b))
   const label = tab === 'movies' ? 'Movie' : 'Video Game'
-
-  if (!getAdminKey()) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="card max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold mb-4">Admin</h1>
-          <p className="text-slate-400">Missing admin key. Use <code className="text-teal-300">?key=yourSecret</code> in the URL.</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4">

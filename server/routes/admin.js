@@ -11,10 +11,14 @@ const ADMIN_TYPES = {
   videogames: 'videogame'
 };
 
-// Checks ADMIN_KEY env var
+// Allows requests from an ADMIN_IPS address or carrying ADMIN_KEY
 function requireAdmin(req, res, next) {
+  const adminIps = (process.env.ADMIN_IPS || '').split(',').map(ip => ip.trim()).filter(Boolean);
+  const ip = (req.ip || '').replace(/^::ffff:/, '');
   const key = req.query.key || req.headers['x-admin-key'];
-  if (!process.env.ADMIN_KEY || key !== process.env.ADMIN_KEY) {
+  const ipAllowed = adminIps.includes(ip);
+  const keyAllowed = process.env.ADMIN_KEY && key === process.env.ADMIN_KEY;
+  if (!ipAllowed && !keyAllowed) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   next();

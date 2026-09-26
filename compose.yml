@@ -14,6 +14,8 @@ services:
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
       - LASTFM_API_KEY=${LASTFM_API_KEY}
       - ADMIN_KEY=${ADMIN_KEY}
+      - ADMIN_IPS=${ADMIN_IPS:-}
+      - TRUST_PROXY=${TRUST_PROXY:-}
     volumes:
       # Imported playlists persist across rebuilds (install-specific)
       - ./server/imported-playlists.json:/app/server/imported-playlists.json

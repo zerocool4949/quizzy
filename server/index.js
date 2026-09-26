@@ -30,6 +30,11 @@ for (const [mode, label] of [['movie', 'Movie'], ['videogame', 'Videogame']]) {
 }
 
 const app = express();
+// Number of reverse proxy hops (or a subnet like 'loopback') so req.ip is the real client IP
+if (process.env.TRUST_PROXY) {
+  const hops = Number(process.env.TRUST_PROXY);
+  app.set('trust proxy', Number.isInteger(hops) ? hops : process.env.TRUST_PROXY);
+}
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
