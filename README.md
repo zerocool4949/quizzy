@@ -1,12 +1,14 @@
-﻿# Quizzy
+# Quizzy
 
 A real-time multiplayer music quiz game. Listen to song clips, guess the artist and title, compete with friends.
 
 ## Quick Start
 
+Use Node.js 22.13+ and pnpm 11.24.0 (pinned in `package.json`). Install pnpm if needed with `npm install --global pnpm@11.24.0`. On Windows, use `pnpm.cmd` if PowerShell blocks `pnpm.ps1`.
+
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 Open http://localhost:5173
@@ -14,7 +16,7 @@ Open http://localhost:5173
 ### Run Tests
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## Features

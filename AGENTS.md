@@ -30,11 +30,12 @@ Follow the global `~/.codex/AGENTS.md` for general workflow, scope, communicatio
 - Shared config and deployment files are at repo root: `compose.yml`, `Dockerfile`, `.env.example`.
 
 ## Build, Test, and Development Commands
-- `npm install` installs root workspaces (`client`, `server`).
-- `npm run dev` runs both apps concurrently (Vite on `:5173`, API on `:3001` by default).
-- `npm run build` builds the client for production (`client/dist`).
-- `npm start` runs the server in production mode.
-- `npm test` runs server tests (Vitest). Use `npm run test:watch` for watch mode.
+- Use Node.js 22.13+ and pnpm 11.24.0, pinned in `package.json`. `pnpm-workspace.yaml` declares client/server and allows esbuild installation scripts; commit `pnpm-lock.yaml`. Docker uses Node 22 and frozen pnpm installs, with only server production dependencies in the runtime stage.
+- `pnpm install` installs root workspaces (`client`, `server`).
+- `pnpm run dev` runs both apps concurrently (Vite on `:5173`, API on `:3001` by default).
+- `pnpm run build` builds the client for production (`client/dist`).
+- `pnpm start` runs the server in production mode.
+- `pnpm test` runs server tests (Vitest). Use `pnpm run test:watch` for watch mode.
 - `docker compose up -d` runs the full stack in production containers.
 
 ## Coding Style & Naming Conventions

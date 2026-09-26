@@ -1,24 +1,24 @@
 # Build stage for client
-FROM node:20-alpine AS client-build
+FROM node:22-alpine AS client-build
 WORKDIR /app
 
 # Copy all package files for workspace
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY client/package.json ./client/
 COPY server/package.json ./server/
 
 # Install all dependencies (workspace mode)
-RUN npm ci
+RUN npm install --global pnpm@11.24.0 && pnpm install --frozen-lockfile
 
 # Copy source code
 COPY client/ ./client/
 COPY server/ ./server/
 
 # Build client
-RUN npm run build --workspace=client
+RUN pnpm --filter client run build
 
 # Production stage
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 WORKDIR /app
 
 # System deps for movie clip cache
@@ -28,11 +28,12 @@ RUN apk add --no-cache ffmpeg python3 py3-pip && \
     pip install --break-system-packages "yt-dlp[default]"
 
 # Copy package files
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY client/package.json ./client/
 COPY server/package.json ./server/
 
 # Install production dependencies only
-RUN npm ci --omit=dev --workspace=server
+RUN npm install --global pnpm@11.24.0 && pnpm --filter server install --prod --frozen-lockfile
 
 # Copy server code
 COPY server/ ./server/
