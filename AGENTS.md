@@ -17,6 +17,7 @@ Follow the global `~/.codex/AGENTS.md` for general workflow, scope, communicatio
 - `server/movies.json` contains the curated list of movies/series with their soundtrack tracks.
 - `server/videogameQuiz.js` handles video game soundtrack quiz generation (mirrors movieQuiz.js).
 - `server/videogames.json` contains the curated list of video games with their soundtrack tracks.
+- `server/categories.js` loads artist lists from `server/categories.json` and imported Spotify playlists (`server/imported-playlists.json`).
 - `server/music.js` re-exports the active provider (`cache-provider.js`).
 - `server/cache-provider.js` is the main music provider (cache-first with Spotify fallback + Deezer previews).
 - `server/artistCache.js` handles local cache persistence (`server/data/artists.json`) with in-memory caching.
@@ -27,7 +28,8 @@ Follow the global `~/.codex/AGENTS.md` for general workflow, scope, communicatio
 - `server/answerMatcher.js` provides fuzzy matching for typed answers (Levenshtein distance, normalization).
 - `server/titleUtils.js` provides shared title cleaning helpers.
 - `server/validation.js` provides input sanitization for player names, room codes, and answers.
-- Shared config and deployment files are at repo root: `compose.yml`, `Dockerfile`, `.env.example`.
+- `server/tests/` holds Vitest suites (`answerMatcher`, `gameManager`, `quiz`).
+- Shared config and deployment files are at repo root: `compose.yml`, `Dockerfile`, `.env.example`; CI workflows are in `.github/workflows/`.
 
 ## Build, Test, and Development Commands
 - Use Node.js 22.13+ and pnpm 11.24.0, pinned in `package.json`. `pnpm-workspace.yaml` declares client/server and allows esbuild installation scripts; commit `pnpm-lock.yaml`. Docker uses Node 22 and frozen pnpm installs, with only server production dependencies in the runtime stage.
@@ -46,7 +48,7 @@ Follow the global `~/.codex/AGENTS.md` for general workflow, scope, communicatio
 
 ## Testing Guidelines
 - Backend tests use Vitest (`server` workspace).
-- Name tests to mirror modules or behaviors (example: `answerMatcher.test.js` in `server/`).
+- Name tests to mirror modules or behaviors (example: `server/tests/answerMatcher.test.js`).
 - Add tests only when explicitly requested; for game logic, focus requested tests on scoring, round flow, and answer matching.
 
 ## Commit & Pull Request Guidelines
@@ -72,7 +74,7 @@ Follow the global `~/.codex/AGENTS.md` for general workflow, scope, communicatio
 - **Spotify token caching**: The Spotify access token is cached with a promise lock to prevent parallel fetches when concurrent requests arrive. See `getAccessToken` in `server/spotify.js`.
 - **Title cleaning**: Track titles are cleaned by removing parenthetical content `(...)`, bracketed content `[...]`, and everything after ` - ` (which typically contains metadata like "Remastered", "Live", "Acoustic", etc.). Cache stores original titles; cleaning is applied at Deezer search (`server/cache-provider.js`) and output (`server/quiz.js`). See `cleanTitle` in `server/titleUtils.js`.
 - **Typed answer matching**: Uses Levenshtein distance with ~15% typo tolerance and word-level matching for multi-word answers. Accents and punctuation are normalized. See `server/answerMatcher.js`.
-- **Typed scoring**: Speed bonus tiers are +5 (<5s), +3 (<10s), +1 (<15s). Artist base 10, title base 15, combo +5. See `submitAnswer` in `server/gameManager.js`.
+- **Scoring**: MCQ correct answer is 10 + speed bonus +3 (<3s), +2 (<6s), +1 (<10s). Typed uses speed tiers +5 (<5s), +3 (<10s), +1 (<15s) with artist base 10, title base 15, combo +5; typed players get 3 lives (5 on hard difficulty). Movie/videogame correct guess is 15 + typed speed tiers. See `submitAnswer` in `server/gameManager.js`.
 - **Round timing**: Round ends at `clipDuration + answerTime` (answerTime is 10s for typed/movie/videogame, 5s for MCQ). See `getCurrentRound` in `server/gameManager.js` and `sendNextRound` in `server/index.js`.
 - **Movie soundtrack mode**: Uses typed input (not MCQ) to guess the movie/series name. Tracks are loaded from `server/movies.json` and downloaded from YouTube via yt-dlp. Players get 3 lives. See `server/movieQuiz.js` and movie handling in `server/gameManager.js`.
 - **Admin page**: Accessible at `/admin?key=ADMIN_KEY`. Provides inline editing of `movies.json` and `videogames.json` entries directly in the table. Features: auto-save on every action (add/edit/delete), audio preview (Play button), re-download clips (Re-dl button), alphabetical sorting. Auth via `ADMIN_KEY` env var checked by `requireAdmin` middleware in `server/index.js`. Saves trigger `warmMovieClips` in the background to download new/missing clips. Re-download endpoint (`POST /api/admin/redownload`) deletes the cached clip and re-downloads it. See `client/src/components/Admin.jsx` and admin routes in `server/index.js`.
@@ -174,4 +176,5 @@ Behavior:
 - `movies.json` and `videogames.json` are mounted separately so they can be updated without rebuilding the image (just `git pull && docker compose restart`).
 - Dockerfile installs `yt-dlp[default]` via pip (includes EJS challenge solver scripts) and `ffmpeg` via Alpine packages. Node.js (from base image) is used as the JS runtime for yt-dlp's YouTube challenge solving (`--js-runtimes node` and `--remote-components ejs:github` in `audioCache.js`).
 - To update yt-dlp when movie clips break: `docker compose build --no-cache && docker compose up -d`.
-- Images are built via GitHub Actions on tag push and stored in `ghcr.io/zerocool4949/quizzy`.
+- Images are built by `.github/workflows/docker.yml` (on `ubuntu-latest`) on push to `main`, `v*` tags, or manual dispatch, and pushed to `ghcr.io/zerocool4949/quizzy` tagged `latest` + commit SHA (main) or the tag name. Provenance/SBOM attestations are disabled.
+- `.github/workflows/ghcr-cleanup.yml` runs weekly (Sunday 03:00 UTC) or manually, keeping the latest tagged version and deleting untagged images.
