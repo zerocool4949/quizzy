@@ -1,5 +1,7 @@
 # Quizzy
 
+<img src="assets/branding/icon-512.png" alt="Quizzy icon" width="96" height="96">
+
 A real-time multiplayer music quiz game. Listen to song clips, guess the artist and title, compete with friends.
 
 ## Quick Start

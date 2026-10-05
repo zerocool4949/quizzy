@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+Branding assets live in `assets/branding/` (master icon, 512px dashboard icon, GitHub social preview and usage notes). Browser icons are served from `client/public/project-*`; keep favicon and touch-icon links aligned with those exports.
+
 ## Working instructions
 
 ## Project Structure & Module Organization
